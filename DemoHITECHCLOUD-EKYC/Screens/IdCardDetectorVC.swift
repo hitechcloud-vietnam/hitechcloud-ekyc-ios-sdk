@@ -1,0 +1,97 @@
+//
+//  IdCardDetectorVC.swift
+//  Demo
+//
+//  Created by Nguyen Thanh An on 08/10/2026.
+//
+
+import UIKit
+import HITECHCLOUD_EKYC
+import AVFoundation
+
+class IdCardDetectorVC: UIViewController {
+    
+    @IBOutlet weak var cameraView: UIView!
+    @IBOutlet weak var correctView: UIImageView!
+    
+    var camera: HITECHCLOUDEKYC?
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        
+        
+        camera = HITECHCLOUDEKYC.init(frameCameraPreview: self.cameraView.bounds, frameCorrect: self.correctView.frame)
+        if let camera = self.camera {
+            self.cameraView.addSubview(camera.cameraPreview)
+        }
+        self.cameraView.bringSubviewToFront(self.correctView)
+        
+        //Set Delegate
+        camera?.cameraDelegate = self
+        camera?.idCardDetectorDelegate = self
+        
+        //Set Type
+        camera?.isType = .idCard
+        //Show debug view
+        camera?.showDebug = true
+        //Position
+        camera?.cameraPosition = .back
+        
+        camera?.startSession()
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        //Restart session - Khởi tạo lại camera nếu đã tạm dừng camera trước đó
+        self.camera?.restartSession()
+    }
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        //Tạm dừng session Camera - Nếu cần tạm dừng camera
+        self.camera?.stopSession()
+    }
+    
+}
+
+extension IdCardDetectorVC: HITECHCLOUDEKYCCameraDelegate {
+    
+    func cameraChangePosition(newPosision: AVCaptureDevice.Position) {
+        
+    }
+    
+    func cameraPermissionCameraDenied(status: AVAuthorizationStatus) {
+        
+    }
+    
+    func cameraDidStart() {
+        
+    }
+    
+    func cameraDidFail(error: Error) {
+        
+    }
+    
+    func cameraDidStop() {
+        
+    }
+    
+    
+}
+
+extension IdCardDetectorVC: HITECHCLOUDEKYCIdCardDetectorDelegate {
+    func idCardDetectionResult(valid: Bool, result: IdCardResult?) {
+        DispatchQueue.main.async {
+            self.correctView.image = self.correctView.image?.withRenderingMode(.alwaysTemplate)
+            self.correctView.tintColor = valid ? UIColor.green : UIColor.red
+        }
+        if let result = result, valid {
+            let type: IdCardType = result.type
+            let image: UIImage = result.image
+        }
+    }
+    
+    
+
+    
+}
